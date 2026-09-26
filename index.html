@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwMTY3MjA4MjA2NDMzNjI5ODcwMSIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzExNTdmZTBkMGI1ZWRiYmRfaW5kZXguaHRtbC03NiJ9LCJleHAiOjE3OTA0MTc4MzQsImlhdCI6MTc5MDQxNDIzNCwiYWxnIjoiUlMyNTYifQ.oT7wXAlH1FB_q8Q_Q3m_zI7NqCfa0DEEwSYALkBGCY8r_2hDe9JEOHt-vKjONCg1yt6QL1E9NYCMzGgH5ybw6R3-P-j3VkqfbU7N1156e1nPdKBZQuyeRdsDo4LZtkunOBhITTTPl3ztxhtvpdJPuvhTTr9YYOushSFECLpcuq5rpf1Nj5iDeJukQvHL8fue6C2v2WHNkrEGWjp05UFTmaE-ASglNj0FAu9qCUk33xQxk3ya7EY5XgDz6fMzNRGud6CYw5I7tHAqSfna1mBuh8wPSH0KRY_kz0IOfwRKWOz_9R04a8qCB0hEd-ybev-v-TbOZSDh6hw9qLeQLiYhNg","c_1157fe0d0b5edbbd_index.html-76")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Awais Asadi — Operations Management, Inter-Agency Coordination &amp; Tender Writing</title>
+  
+  <!-- Google Fonts: Fraunces (Headlines) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  
+  <!-- Three.js (r128) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+
+  <script>
+    // Resolve base path for GitHub Pages repository subdirectory
+    var repoPath = window.location.pathname.replace(/\/[^/]*$/, '/');
+    if (!repoPath.endsWith('/')) repoPath += '/';
+
+    var avatarCandidates = [
+      'profile.jpg',
+      'profile.jpeg',
+      'profile.png',
+      'profile.JPG',
+      'profile.JPEG',
+      'profile.jpg.jpg',
+      'profile.jpg.jpeg',
+      'WhatsApp Image 2026-08-17 at 13.03.49.jpeg',
+      'WhatsApp%20Image%202026-08-17%20at%2013.03.49.jpeg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/main/profile.jpg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/master/profile.jpg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/main/profile.jpeg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/master/profile.jpeg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/main/WhatsApp%20Image%202026-08-17%20at%2013.03.49.jpeg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/master/WhatsApp%20Image%202026-08-17%20at%2013.03.49.jpeg'
+    ];
+    var avatarIdx = 0;
+    function tryNextAvatar(img) {
+      avatarIdx++;
+      if (avatarIdx < avatarCandidates.length) {
+        var src = avatarCandidates[avatarIdx];
+        img.src = src.startsWith('http') ? src : repoPath + src;
+      } else {
+        img.onerror = null;
+        img.src = 'https://placehold.co/280x280/131720/D98F4C?text=Awais+Asadi';
+      }
+    }
+
+    var bookCandidates = [
+      'book.jpg',
+      'book.jpeg',
+      'book.png',
+      'book.JPG',
+      'book.JPEG',
+      'book.jpg.jpg',
+      'book.jpg.jpeg',
+      'WhatsApp Image 2026-08-17 at 15.10.38.jpeg',
+      'WhatsApp%20Image%202026-08-17%20at%2015.10.38.jpeg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/main/book.jpg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/master/book.jpg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/main/book.jpeg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/master/book.jpeg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/main/WhatsApp%20Image%202026-08-17%20at%2015.10.38.jpeg',
+      'https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/master/WhatsApp%20Image%202026-08-17%20at%2015.10.38.jpeg'
+    ];
+    var bookIdx = 0;
+    function tryNextBook(img) {
+      bookIdx++;
+      if (bookIdx < bookCandidates.length) {
+        var src = bookCandidates[bookIdx];
+        img.src = src.startsWith('http') ? src : repoPath + src;
+      } else {
+        img.onerror = null;
+        img.src = 'https://placehold.co/900x640/131720/D98F4C?text=Hameen+Khakum+-+Awais+Asadi';
+      }
+    }
+  </script>
+
+  <style>
+    /* ==========================================================================
+       THEME SYSTEM: SMOKED OBSIDIAN, SLATE CHARCOAL & TUSCAN BRONZE
+       ========================================================================== */
+    :root {
+      --bg-base: #0B0D11;
+      --bg-surface: #131720;
+      --bg-card: rgba(19, 23, 32, 0.78);
+      --bg-card-hover: rgba(26, 32, 45, 0.92);
+      
+      --accent-bronze: #D98F4C;
+      --accent-bronze-bright: #F0A766;
+      --accent-bronze-glow: rgba(217, 143, 76, 0.32);
+      --accent-bronze-subtle: rgba(217, 143, 76, 0.12);
+      
+      --text-main: #F4EFEA;
+      --text-muted: #9AA3B2;
+      --text-dark: #0B0D11;
+      
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-bronze: rgba(217, 143, 76, 0.28);
+      --border-bronze-bright: rgba(240, 167, 102, 0.5);
+      
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --transition-smooth: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(217, 143, 76, 0.08) 0%, transparent 55%),
+        radial-gradient(circle at 10% 40%, rgba(26, 32, 45, 0.6) 0%, transparent 60%),
+        radial-gradient(circle at 90% 80%, rgba(217, 143, 76, 0.05) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    /* Three.js Background Canvas Layer */
+    #bg-canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.95;
+      transition: opacity 0.5s ease;
+    }
+
+    #webgl-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Content Wrapper */
+    .app-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 24px) env(safe-area-inset-bottom, 24px) env(safe-area-inset-left, 24px);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    /* Sticky Header */
+    .top-nav {
+      position: sticky;
+      top: 0.75rem;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 1.4rem;
+      background: rgba(11, 13, 17, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-mark {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .brand-mark span {
+      color: var(--accent-bronze-bright);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .motion-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: var(--transition-smooth);
+    }
+
+    .motion-toggle:hover {
+      border-color: var(--border-bronze);
+      color: var(--text-main);
+    }
+
+    .btn-download {
+      background: transparent;
+      border: 1px solid var(--border-bronze);
+      color: var(--accent-bronze-bright);
+      padding: 0.45rem 0.95rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-download:hover {
+      background: var(--accent-bronze-subtle);
+      border-color: var(--accent-bronze-bright);
+      transform: translateY(-1px);
+    }
+
+    .nav-cta {
+      background: var(--accent-bronze);
+      color: var(--text-dark);
+      padding: 0.48rem 1.15rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: var(--transition-smooth);
+      box-shadow: 0 2px 12px var(--accent-bronze-glow);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-cta:hover {
+      background: var(--accent-bronze-bright);
+      transform: translateY(-1px);
+    }
+
+    /* ==========================================================================
+       HERO EXECUTIVE SPOTLIGHT
+       ========================================================================== */
+    .hero-section {
+      padding: 3.5rem 0 2.5rem;
+      text-align: center;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 1.8rem;
+    }
+
+    .avatar-ring {
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-bronze);
+      box-shadow: 0 0 35px var(--accent-bronze-glow);
+      animation: pulse-ring 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 0.75; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.025); }
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      position: relative;
+      z-index: 2;
+      border: 3px solid var(--bg-surface);
+    }
+
+    .hero-tagline {
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-bronze-bright);
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.1rem, 4.5vw, 3.4rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.015em;
+      margin-bottom: 1.3rem;
+      color: var(--text-main);
+    }
+
+    .hero-title span {
+      color: var(--accent-bronze-bright);
+    }
+
+    .hero-desc {
+      max-width: 820px;
+      margin: 0 auto 2.2rem;
+      color: var(--text-muted);
+      font-size: 1.025rem;
+      line-height: 1.7;
+    }
+
+    .hero-btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 3.2rem;
+    }
+
+    .btn-solid {
+      background: var(--accent-bronze);
+      color: var(--text-dark);
+      padding: 0.8rem 1.9rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: var(--transition-smooth);
+      box-shadow: 0 4px 18px var(--accent-bronze-glow);
+    }
+
+    .btn-solid:hover {
+      background: var(--accent-bronze-bright);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: var(--bg-card);
+      border: 1px solid var(--border-bronze);
+      color: var(--text-main);
+      padding: 0.8rem 1.9rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-outline:hover {
+      background: var(--accent-bronze-subtle);
+      border-color: var(--accent-bronze);
+      transform: translateY(-2px);
+    }
+
+    /* Quantitative Outcomes */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.2rem;
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 1.6rem 1.3rem;
+      border-radius: 16px;
+      text-align: left;
+      transition: var(--transition-smooth);
+    }
+
+    .metric-card:hover {
+      border-color: var(--border-bronze);
+      background: var(--bg-card-hover);
+      transform: translateY(-3px);
+    }
+
+    .metric-num {
+      font-family: var(--font-display);
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: var(--accent-bronze-bright);
+      line-height: 1;
+      margin-bottom: 0.45rem;
+    }
+
+    .metric-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* ==========================================================================
+       CORE SKILLS MATRIX
+       ========================================================================== */
+    .skills-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 16px;
+      padding: 1.8rem;
+      margin: 3.5rem 0 2rem;
+    }
+
+    .block-header {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-bronze);
+      font-weight: 600;
+      margin-bottom: 0.9rem;
+    }
+
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .skill-tag {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      padding: 0.35rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      transition: var(--transition-smooth);
+    }
+
+    .skill-tag:hover {
+      border-color: var(--border-bronze);
+      color: var(--accent-bronze-bright);
+      background: var(--accent-bronze-subtle);
+    }
+
+    /* ==========================================================================
+       LENS SELECTOR
+       ========================================================================== */
+    .lens-container {
+      margin: 3.5rem 0 2.5rem;
+      text-align: center;
+    }
+
+    .lens-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent-bronze);
+      margin-bottom: 1rem;
+      display: block;
+      font-weight: 600;
+    }
+
+    .lens-bar {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      background: rgba(19, 23, 32, 0.92);
+      border: 1px solid var(--border-subtle);
+      padding: 0.35rem;
+      border-radius: 999px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .lens-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.55rem 1.25rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .lens-btn.active {
+      background: var(--accent-bronze);
+      color: var(--text-dark);
+      font-weight: 600;
+      box-shadow: 0 2px 12px var(--accent-bronze-glow);
+    }
+
+    .lens-btn:hover:not(.active) {
+      color: var(--text-main);
+    }
+
+    /* ==========================================================================
+       EXPERIENCE & DOSSIER CARDS
+       ========================================================================== */
+    .dossier-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 2.2rem;
+      margin-bottom: 1.6rem;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transition: var(--transition-smooth);
+    }
+
+    .dossier-card:hover {
+      border-color: var(--border-bronze);
+      background: var(--bg-card-hover);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .role-title {
+      font-family: var(--font-display);
+      font-size: 1.38rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .role-org {
+      color: var(--accent-bronze-bright);
+      font-size: 0.96rem;
+      font-weight: 500;
+    }
+
+    .role-tenure {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.28rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .card-summary {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.1rem;
+      line-height: 1.65;
+    }
+
+    .dossier-list {
+      list-style: none;
+      margin-bottom: 1.3rem;
+    }
+
+    .dossier-list li {
+      position: relative;
+      padding-left: 1.4rem;
+      margin-bottom: 0.65rem;
+      color: var(--text-muted);
+      font-size: 0.93rem;
+      line-height: 1.6;
+    }
+
+    .dossier-list li::before {
+      content: "—";
+      color: var(--accent-bronze);
+      position: absolute;
+      left: 0;
+      font-weight: 600;
+    }
+
+    .dossier-list strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .badge-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 1rem;
+    }
+
+    .pill {
+      font-size: 0.74rem;
+      padding: 0.26rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+    }
+
+    .pill.highlight {
+      border-color: var(--border-bronze);
+      color: var(--accent-bronze-bright);
+      background: var(--accent-bronze-subtle);
+    }
+
+    /* 7 Landmark Grants Grid */
+    .grants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 1.1rem;
+      margin-top: 1.4rem;
+    }
+
+    .grant-box {
+      background: rgba(11, 13, 17, 0.65);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: var(--transition-smooth);
+    }
+
+    .grant-box:hover {
+      border-color: var(--border-bronze);
+      transform: translateY(-2px);
+    }
+
+    .grant-donor {
+      font-size: 0.72rem;
+      color: var(--accent-bronze-bright);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.3rem;
+    }
+
+    .grant-name {
+      font-family: var(--font-display);
+      font-size: 1.02rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.35rem;
+      line-height: 1.35;
+    }
+
+    .grant-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 3rem 0 2rem;
+      margin-top: 4.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.6rem;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-main);
+      text-decoration: none;
+      transition: var(--transition-smooth);
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-bronze-bright);
+    }
+
+    @media (max-width: 768px) {
+      .dossier-card { padding: 1.5rem; }
+      .hero-title { font-size: 2.1rem; }
+      .grants-grid { grid-template-columns: 1fr; }
+      .top-nav { flex-wrap: wrap; gap: 0.75rem; border-radius: 16px; }
+      .brand-mark { width: 100%; justify-content: center; }
+      .nav-actions { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Three.js Background Canvas Layer -->
+  <div id="bg-canvas-container">
+    <canvas id="webgl-canvas" width="1422" height="1242" style="width: 948px; height: 828px;"></canvas>
+  </div>
+
+  <div class="app-wrapper">
+    <header class="container">
+      <nav class="top-nav">
+        <a href="#" class="brand-mark">
+          AWAIS ASADI <span>•</span> PROFESSIONAL DOSSIER
+        </a>
+        <div class="nav-actions">
+          <button id="motion-toggle-btn" class="motion-toggle" aria-label="Toggle motion animation"><span style="color:#D98F4C">•</span> Motion: Active</button>
+          <button id="download-html-btn" class="btn-download" title="Save standalone single-file HTML">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download HTML
+          </button>
+          <a href="https://wa.me/923458311303" target="_blank" rel="noopener" class="nav-cta" title="Contact via WhatsApp">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.06-2.112-.525-1.748-.722-2.884-2.497-2.973-2.614-.088-.117-.704-.937-.704-1.787 0-.85.443-1.268.601-1.441.157-.173.344-.216.458-.216.115 0 .23 0 .331.005.106.006.249-.04.389.297.144.35.492 1.2.535 1.288.043.088.072.19.014.305-.058.115-.088.187-.174.288-.088.102-.185.228-.264.306-.089.088-.182.185-.078.363.104.178.463.764.995 1.238.685.611 1.263.8 1.442.889.178.088.283.074.389-.047.106-.121.458-.533.58-.716.122-.183.245-.152.408-.092.164.06 1.036.489 1.214.578.178.089.297.133.341.207.045.074.045.43-.099.835z"></path></svg>
+            WhatsApp
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container">
+      <!-- HERO -->
+      <section class="hero-section">
+        <div class="avatar-wrapper">
+          <div class="avatar-ring"></div>
+          <img id="avatar-profile-img" src="https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/main/profile.jpeg" alt="Awais Asadi" class="avatar-img" onerror="tryNextAvatar(this);">
+        </div>
+
+        <p class="hero-tagline">
+          Operations • Multi-Agency Coordination • Tender &amp; Proposal Writing • Training &amp; Development
+        </p>
+
+        <h1 class="hero-title">
+          15 Years of Operations Management,<br><span>Multi-Agency Coordination &amp; Grant Delivery</span>
+        </h1>
+
+        <p class="hero-desc">
+          Directed large-scale refugee registration and repatriation operations for the Commissionerate for Afghan Refugees (CAR) Balochistan in direct coordination with UNHCR, IOM, and NADRA. Led end-to-end delivery of 7 donor-funded programs as Lead Consultant / CEO for AIM (ILO, UNODC, Mercy Corps, ECP, Muslim Hands, GPE). Currently authoring tender submissions for UK healthcare providers at MyProjectz Consultants; Certified Master Trainer on the UNHCR CCCM Roster.
+        </p>
+
+        <div class="hero-btn-group">
+          <a href="https://wa.me/923458311303" target="_blank" rel="noopener" class="btn-solid">Connect on WhatsApp</a>
+          <a href="#experience" class="btn-outline">View Master Record</a>
+        </div>
+
+        <!-- Metric Grid -->
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-num">15 Years</div>
+            <div class="metric-label">CAR Balochistan Operations (UNHCR, IOM, NADRA Liaison)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num">10,000+</div>
+            <div class="metric-label">Applicants Processed under Afghan Citizen's Card (ACC) Project</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num">7 Programs</div>
+            <div class="metric-label">Delivered for ILO, UNODC, Mercy Corps, ECP, Muslim Hands &amp; GPE</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num">30+ Sessions</div>
+            <div class="metric-label">Delivered to 500+ Participants as Certified Master Trainer</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Core Skills Matrix -->
+      <section class="skills-block">
+        <div class="block-header">Core Competencies &amp; Technical Capabilities</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Proposal, Grant &amp; Tender Writing</span>
+          <span class="skill-tag">Operations &amp; Multi-Agency Coordination</span>
+          <span class="skill-tag">Crisis and Emergency Response Leadership</span>
+          <span class="skill-tag">Senior Administrative &amp; Executive Support</span>
+          <span class="skill-tag">Sensitive Documentation &amp; Records Management</span>
+          <span class="skill-tag">Government &amp; International Agency Liaison</span>
+          <span class="skill-tag">Training Design &amp; Facilitation</span>
+          <span class="skill-tag">English-Urdu Translation &amp; Editing</span>
+          <span class="skill-tag">Graphic Design (Canva)</span>
+          <span class="skill-tag">Personality Development Coaching</span>
+          <span class="skill-tag">Governance, Reporting &amp; Compliance</span>
+          <span class="skill-tag">Multi-District Field Program Coordination</span>
+        </div>
+      </section>
+
+      <!-- Lens Filter -->
+      <section class="lens-container">
+        <span class="lens-label">Filter by Practice Track</span>
+        <div class="lens-bar">
+          <button class="lens-btn active" data-filter="all">Master Record</button>
+          <button class="lens-btn" data-filter="ops">Operations &amp; Public Sector</button>
+          <button class="lens-btn" data-filter="tender">UK Tender Writing</button>
+          <button class="lens-btn" data-filter="grants">Donor Grant Execution</button>
+          <button class="lens-btn" data-filter="training">Training &amp; Advisory</button>
+          <button class="lens-btn" data-filter="literary">Literary &amp; Media</button>
+          <button class="lens-btn" data-filter="community">Community Service</button>
+        </div>
+      </section>
+
+      <!-- EXPERIENCE SECTION -->
+      <section id="experience">
+
+        <!-- Role: Tender Writer -->
+        <div class="dossier-card" data-category="tender">
+          <div class="card-top">
+            <div>
+              <h2 class="role-title">Tender Writer</h2>
+              <div class="role-org">MyProjectz Consultants (UK Healthcare Sector)</div>
+            </div>
+            <span class="role-tenure">Current</span>
+          </div>
+          <p class="card-summary">
+            Responsible for tender search, technical bid writing, and compliance review for UK healthcare and care-sector firms applying for government frameworks, NHS trusts, and local council contracts.
+          </p>
+          <ul class="dossier-list">
+            <li>Executes systematic tender search and qualification across Contracts Finder and Find a Tender services against client operational capacity.</li>
+            <li>Authors structured narrative responses aligned with Care Quality Commission (CQC) fundamental standards, clinical governance, and safeguarding policies.</li>
+            <li>Develops tailored qualitative responses addressing UK Social Value scoring criteria (Cabinet Office PPN 06/20 model).</li>
+            <li>Conducts comprehensive pre-submission bid reviews to verify compliance against tender specifications and scoring rubrics.</li>
+          </ul>
+          <div class="badge-wrap">
+            <span class="pill highlight">UK Public Procurement</span>
+            <span class="pill">CQC Regulatory Alignment</span>
+            <span class="pill">PPN 06/20 Social Value</span>
+            <span class="pill">Bid Architecture &amp; Review</span>
+          </div>
+        </div>
+
+        <!-- Role: CAR Balochistan -->
+        <div class="dossier-card" data-category="ops">
+          <div class="card-top">
+            <div>
+              <h2 class="role-title">Assistant Director, Registration and Repatriation</h2>
+              <div class="role-org">Commissionerate for Afghan Refugees (CAR), Balochistan</div>
+            </div>
+            <span class="role-tenure">January 2011 – December 2025 (15 Years)</span>
+          </div>
+          <p class="card-summary">
+            Directed province-wide registration and repatriation operations over a 15-year tenure, coordinating directly with UNHCR, NADRA, IOM, the Afghan Consulate, and provincial law enforcement at senior operational level. Contractual government position concluded in 2025 following restructuring and discontinuation of the refugee program in Pakistan.
+          </p>
+          <ul class="dossier-list">
+            <li><strong>Afghan Citizen's Card (ACC) Project:</strong> Served as Operational Focal Person for the joint initiative involving IOM, the Government of Afghanistan, and the Ministry of States and Frontier Regions (SAFRON), overseeing registration and biometric intake for 10,000+ applicants.</li>
+            <li><strong>Multi-Agency Center Security:</strong> Managed on-site operational workflows and multi-agency coordination across registration and repatriation centers in Balochistan alongside UNHCR and law enforcement bodies.</li>
+            <li><strong>Emergency Registrations:</strong> Led 3 emergency registration responses under high-pressure, time-critical operational conditions while ensuring data quality and verification standards.</li>
+            <li><strong>Provincial Shura Representation:</strong> Represented CAR at province-wide Shura meetings, facilitating structured dialogue between government administrations, international agency teams, and community representatives.</li>
+            <li><strong>Team Leadership &amp; Protocol Compliance:</strong> Supervised administrative staff and field registration teams; conducted internal training on data sensitivity, code of conduct, and UNHCR security protocols. Directed public communications function.</li>
+          </ul>
+          <div class="badge-wrap">
+            <span class="pill highlight">UNHCR / IOM Operational Liaison</span>
+            <span class="pill">NADRA Biometric Systems</span>
+            <span class="pill">10,000+ ACC Processing</span>
+            <span class="pill">Emergency Interventions</span>
+            <span class="pill">Standard Operating Procedures (SOPs)</span>
+          </div>
+        </div>
+
+        <!-- Role: AIM Projects -->
+        <div class="dossier-card" data-category="grants">
+          <div class="card-top">
+            <div>
+              <h2 class="role-title">Lead Consultant / Chief Executive Officer</h2>
+              <div class="role-org">Association for Integrating Masses (AIM) [BCRA-Registered NGO]</div>
+            </div>
+            <span class="role-tenure">2012 – Present (Lead Consultant 2012–2016; CEO continuing)</span>
+          </div>
+          <p class="card-summary">
+            Directs full project lifecycle management across 7 donor-funded programs: donor identification, technical and financial proposal writing, direct donor agency coordination, monitoring of field procedures, and final review and approval of donor reports:
+          </p>
+
+          <div class="grants-grid">
+            <div class="grant-box">
+              <div class="grant-donor">International Labour Organization (ILO)</div>
+              <div class="grant-name">Assessment on Harmful Impacts of Child Labor</div>
+              <div class="grant-meta">Child Protection • Quetta, Loralai, Killa Saifullah</div>
+            </div>
+            <div class="grant-box">
+              <div class="grant-donor">UNODC</div>
+              <div class="grant-name">Awareness Campaign Regarding Human Trafficking</div>
+              <div class="grant-meta">Protection • Quetta Hub</div>
+            </div>
+            <div class="grant-box">
+              <div class="grant-donor">Mercy Corps International</div>
+              <div class="grant-name">Life Skills Training &amp; Module Development</div>
+              <div class="grant-meta">Livelihoods (Refugee &amp; Host Communities) • Quetta</div>
+            </div>
+            <div class="grant-box">
+              <div class="grant-donor">Election Commission of Pakistan (ECP)</div>
+              <div class="grant-name">Voter Education Campaign across 12 Districts</div>
+              <div class="grant-meta">Civic Education • 12 Districts of Balochistan</div>
+            </div>
+            <div class="grant-box">
+              <div class="grant-donor">Muslim Hands</div>
+              <div class="grant-name">Awareness Campaign for Free Article 25-A</div>
+              <div class="grant-meta">Primary Education Access • Quetta, Jaffarabad</div>
+            </div>
+            <div class="grant-box">
+              <div class="grant-donor">Mercy Corps International</div>
+              <div class="grant-name">Business Management Training for 460 Students</div>
+              <div class="grant-meta">Technical Centers (TTC &amp; WTTC) • Quetta</div>
+            </div>
+            <div class="grant-box">
+              <div class="grant-donor">Global Partnership for Education (GPE-PEB)</div>
+              <div class="grant-name">Third Party Validation for School Up-Gradation</div>
+              <div class="grant-meta">Education Verification • All Districts of Balochistan</div>
+            </div>
+          </div>
+
+          <p class="card-summary" style="margin-top: 1.3rem;">
+            Consultancies, master training, and module development completed with: Help Organization Balochistan, Honest Society for Poor People Balochistan, Panthalassa, Institute of Public Health (IPH), GIZ, and Shaista Sanam Productions. Active grant tracking maintained for recurring donor cycles (UNICEF WASH, WFP Balochistan, Australian DAP).
+          </p>
+        </div>
+
+        <!-- Role: Training & Capacity Building -->
+        <div class="dossier-card" data-category="training">
+          <div class="card-top">
+            <div>
+              <h2 class="role-title">Training &amp; Capacity Building Credentials</h2>
+              <div class="role-org">UNHCR CCCM Training Roster | Mercy Corps | IPH | GIZ</div>
+            </div>
+            <span class="role-tenure">Accredited Practitioner</span>
+          </div>
+          <ul class="dossier-list">
+            <li>Official member of the <strong>UNHCR CCCM (Camp Coordination and Camp Management)</strong> Training Roster in Pakistan.</li>
+            <li>Certified Master Trainer credentials issued through <strong>Mercy Corps, Institute of Public Health (IPH), and GIZ</strong>.</li>
+            <li>Delivered <strong>30+ structured training workshops</strong> to <strong>500+ participants</strong>, including facilitation guides, training materials, and assessment tools.</li>
+            <li>Delivers pro-bono soft-skills and personality development training in schools as an independent coach.</li>
+          </ul>
+          <div class="badge-wrap">
+            <span class="pill highlight">UNHCR CCCM Accreditation</span>
+            <span class="pill">Master Trainer (GIZ / Mercy Corps / IPH)</span>
+            <span class="pill">Curriculum &amp; Module Design</span>
+            <span class="pill">Pre/Post Evaluation Frameworks</span>
+          </div>
+        </div>
+
+        <!-- Role: Literary Work & Media -->
+        <div class="dossier-card" data-category="literary">
+          <div class="card-top">
+            <div>
+              <h2 class="role-title">Literary Publications, Media Production &amp; Digital Curation</h2>
+              <div class="role-org">Published Urdu Poet, Broadcast Producer &amp; Content Creator</div>
+            </div>
+            <span class="role-tenure">Continuous</span>
+          </div>
+
+          <!-- Featured Poetry Book Showcase -->
+          <div class="book-showcase-container">
+            <div class="book-cover-frame" onclick="window.open(this.querySelector('img').src, '_blank')" title="Click to view full cover">
+              <img id="book-cover-img" src="https://raw.githubusercontent.com/awaisasadi/Awais-Asadi/main/book.jpeg" alt="Book Cover: ہمیں خاکم (Hameen Khakum) by Awais Asadi" class="book-cover-img" onerror="tryNextBook(this);">
+              <span class="book-badge-tag">First Edition • 2019</span>
+            </div>
+
+            <div class="book-details">
+              <div>
+                <div class="book-title-urdu">ہمیں خاکم</div>
+                <div class="book-title-en">Hameen Khakum (Urdu Poetry Collection)</div>
+              </div>
+
+              <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.55;">
+                Published collection of original Urdu poetry with a core focus on the classical and contemporary <em>nazm</em> form. Published under the literary pen name Awais Asadi and released through Saanjh Publications in 2019.
+              </p>
+
+              <div class="book-meta-grid">
+                <div class="book-meta-item">
+                  <div class="book-meta-label">Publisher</div>
+                  <div class="book-meta-val">Saanjh Publications (2019)</div>
+                </div>
+                <div class="book-meta-item">
+                  <div class="book-meta-label">Poetic Form</div>
+                  <div class="book-meta-val">Urdu Nazm (نظم)</div>
+                </div>
+                <div class="book-meta-item">
+                  <div class="book-meta-label">Literary Heritage</div>
+                  <div class="book-meta-val">Son of Sarwar Jawaid</div>
+                </div>
+                <div class="book-meta-item">
+                  <div class="book-meta-label">Literary Peer</div>
+                  <div class="book-meta-val">Brother of Ahmed Waqas</div>
+                </div>
+              </div>
+
+              <div class="badge-wrap" style="margin-top: 0.2rem;">
+                <span class="pill highlight">Urdu Nazm</span>
+                <span class="pill">Saanjh Publications</span>
+                <span class="pill">Published Poet</span>
+              </div>
+            </div>
+          </div>
+
+          <ul class="dossier-list">
+            <li><strong>Digital Poetry Curation:</strong> Curates and presents a dedicated literary platform on <a href="https://www.tiktok.com/@awais.asadi" target="_blank" rel="noopener" style="color: var(--accent-bronze-bright); text-decoration: underline;">TikTok (@awais.asadi)</a>, narrating and interpreting masterpieces of classical and contemporary Urdu poetry to bridge modern public audiences with prominent poets and South Asian literary heritage.</li>
+            <li><strong>Translation &amp; Editing:</strong> Translated and edited over 100 analytical articles and research publications between English and Urdu across social, humanitarian, and literary disciplines.</li>
+            <li><strong>Broadcast Media Production:</strong> Host of <em>Bazm-e-Zirman</em> on Zirman Channel; established complete broadcast production infrastructure including bilingual guest invitation protocols, Urdu briefing dossiers, and structured interview scripts (inaugural episode featuring Dr. Bairam Ghauri).</li>
+          </ul>
+        </div>
+
+        <!-- Role: Community Service & Disaster Relief (Dedicated Section) -->
+        <div class="dossier-card" data-category="community">
+          <div class="card-top">
+            <div>
+              <h2 class="role-title">Community Service &amp; Emergency Humanitarian Relief</h2>
+              <div class="role-org">Civil Society Mobilization • Grassroots Welfare Initiatives</div>
+            </div>
+            <span class="role-tenure">2014 – Present</span>
+          </div>
+          <p class="card-summary">
+            Active in provincial civil society, leading community welfare, healthcare access, and rapid-response emergency relief operations across vulnerable districts of Balochistan:
+          </p>
+          <ul class="dossier-list">
+            <li><strong>Organizational Volunteerism:</strong> Active member and field volunteer with <strong>Alkhidmat Foundation</strong> and <strong>Quetta Online</strong>, collaborating on structured community mobilization and emergency relief campaigns.</li>
+            <li><strong>Flood Emergency Response (2022):</strong> Independently mobilized and distributed <strong>PKR 0.7 million</strong> in essential food rations, clean water, and emergency shelter aid directly to vulnerable families during the devastating 2022 Balochistan floods.</li>
+            <li><strong>Healthcare Advocacy:</strong> Organized <strong>4 voluntary blood donation camps</strong> in Quetta to secure vital transfusions for regional thalassemia patients and raised community awareness on prevention.</li>
+            <li><strong>Livelihood &amp; Vocational Empowerment (2014):</strong> Designed and facilitated vocational skill enhancement workshops and distributed practical enterprise starter toolkits to underprivileged women from low-income households in <strong>Loralai</strong>, establishing pathways to household financial self-sufficiency.</li>
+          </ul>
+          <div class="badge-wrap">
+            <span class="pill highlight">Flood Relief Mobilization</span>
+            <span class="pill">Alkhidmat Foundation Volunteer</span>
+            <span class="pill">Thalassemia Donor Drives</span>
+            <span class="pill">Women's Vocational Toolkits (Loralai)</span>
+          </div>
+        </div>
+
+        <!-- Education & Languages -->
+        <div class="dossier-card" data-category="ops">
+          <div class="card-top">
+            <div>
+              <h2 class="role-title">Education &amp; Language Proficiencies</h2>
+              <div class="role-org">Academic Qualifications &amp; Language Competencies</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 0.6rem;">
+            <div>
+              <div class="block-header">Education</div>
+              <ul class="dossier-list" style="margin-bottom: 0;">
+                <li><strong>MBA, Marketing:</strong> CIIT Lahore (2009–2010)</li>
+                <li><strong>BS, Business Administration:</strong> BUITEMS (2004–2008)</li>
+                <li><strong>Intermediate:</strong> FBISE (2002–2004)</li>
+                <li><strong>Matriculation:</strong> FBISE (2000–2002)</li>
+              </ul>
+            </div>
+            <div>
+              <div class="block-header">Languages</div>
+              <ul class="dossier-list" style="margin-bottom: 0;">
+                <li><strong>English:</strong> Full professional proficiency</li>
+                <li><strong>Urdu:</strong> Native / Full professional proficiency</li>
+                <li><strong>Pashto:</strong> Working proficiency</li>
+                <li><strong>Punjabi:</strong> Working proficiency</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <footer class="container">
+      <div class="footer-links">
+        <a href="https://linkedin.com/in/awais-asadi-b666674b" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://wa.me/923458311303" target="_blank" rel="noopener">WhatsApp (+92 345 8311303)</a>
+        <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=asadiawais@gmail.com" target="_blank" rel="noopener" title="Compose via Gmail web">asadiawais@gmail.com</a>
+        <button id="copy-email-btn" style="background: none; border: none; color: var(--accent-bronze-bright); cursor: pointer; font-size: 0.84rem; text-decoration: underline; padding: 0;">Copy Email</button>
+        <a href="https://www.tiktok.com/@awais.asadi" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://instagram.com/awaisasadi" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://facebook.com/awaisgemini" target="_blank" rel="noopener">Facebook</a>
+      </div>
+      <p>Awais Asadi • Quetta, Balochistan, Pakistan • Master Professional Record</p>
+    </footer>
+  </div>
+
+  <!-- Three.js Setup & Interactive Scripts -->
+  <script>
+    (function initApp() {
+      // 1. Motion Preferences
+      let isMotionEnabled = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const motionBtn = document.getElementById('motion-toggle-btn');
+      const motionDot = document.getElementById('motion-dot');
+      
+      function updateMotionUI() {
+        if (!motionBtn) return;
+        motionBtn.innerHTML = isMotionEnabled 
+          ? '<span style="color:#D98F4C">&bull;</span> Motion: Active' 
+          : '<span style="color:#666">&bull;</span> Motion: Reduced';
+      }
+      updateMotionUI();
+
+      motionBtn?.addEventListener('click', () => {
+        isMotionEnabled = !isMotionEnabled;
+        updateMotionUI();
+      });
+
+      // Email Copy Button (Avoids unwanted Outlook launch)
+      const copyBtn = document.getElementById('copy-email-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          const email = 'asadiawais@gmail.com';
+          const temp = document.createElement('textarea');
+          temp.value = email;
+          document.body.appendChild(temp);
+          temp.select();
+          try {
+            document.execCommand('copy');
+            copyBtn.textContent = 'Email Copied!';
+            setTimeout(() => { copyBtn.textContent = 'Copy Email'; }, 2200);
+          } catch(e) {
+            window.open('https://mail.google.com/mail/?view=cm&fs=1&to=' + email, '_blank');
+          }
+          document.body.removeChild(temp);
+        });
+      }
+
+      // 2. Interactive Category Filter
+      const filterBtns = document.querySelectorAll('.lens-btn');
+      const cards = document.querySelectorAll('.dossier-card');
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const filter = btn.getAttribute('data-filter');
+
+          cards.forEach(card => {
+            const cat = card.getAttribute('data-category');
+            if (filter === 'all' || cat === filter) {
+              card.style.display = 'block';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      });
+
+      // 3. One-Click Standalone HTML Downloader
+      const downloadBtn = document.getElementById('download-html-btn');
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+          const docType = '<!DOCTYPE html>\n';
+          const fullHtml = docType + document.documentElement.outerHTML;
+          const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'Awais_Asadi_Executive_Dossier.html';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        });
+      }
+
+      // 4. Three.js Background Initialization (Protected in try/catch)
+      try {
+        const canvas = document.getElementById('webgl-canvas');
+        if (!canvas || !window.THREE) return;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 24;
+
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // Outer Icosahedron in Tuscan Bronze (#D98F4C)
+        const outerGeo = new THREE.IcosahedronGeometry(7, 1);
+        const outerMat = new THREE.MeshBasicMaterial({
+          color: 0xD98F4C,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.32
+        });
+        const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+        scene.add(outerMesh);
+
+        // Vertex Points in Bright Tuscan Amber (#F0A766)
+        const outerPointsMat = new THREE.PointsMaterial({
+          color: 0xF0A766,
+          size: 0.16,
+          transparent: true,
+          opacity: 0.8
+        });
+        const outerPoints = new THREE.Points(outerGeo, outerPointsMat);
+        outerMesh.add(outerPoints);
+
+        // Inner Counter-Rotating Icosahedron in Alabaster (#F4EFEA)
+        const innerGeo = new THREE.IcosahedronGeometry(4.2, 0);
+        const innerMat = new THREE.MeshBasicMaterial({
+          color: 0xF4EFEA,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.2
+        });
+        const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+        scene.add(innerMesh);
+
+        // Ambient Floating Particle / Stardust Field
+        const particleCount = 135;
+        const particleGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount * 3; i += 3) {
+          positions[i] = (Math.random() - 0.5) * 60;
+          positions[i + 1] = (Math.random() - 0.5) * 60;
+          positions[i + 2] = (Math.random() - 0.5) * 40 - 5;
+        }
+
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const particleMat = new THREE.PointsMaterial({
+          color: 0xD98F4C,
+          size: 0.11,
+          transparent: true,
+          opacity: 0.35
+        });
+        const particleField = new THREE.Points(particleGeo, particleMat);
+        scene.add(particleField);
+
+        // Mouse Parallax
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+          mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+          mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        // Responsive Resize
+        window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation Loop
+        function animate() {
+          requestAnimationFrame(animate);
+
+          targetX += (mouseX - targetX) * 0.05;
+          targetY += (mouseY - targetY) * 0.05;
+
+          if (isMotionEnabled) {
+            outerMesh.rotation.y += 0.0014;
+            outerMesh.rotation.x += 0.0007;
+
+            innerMesh.rotation.y -= 0.002;
+            innerMesh.rotation.z += 0.001;
+
+            particleField.rotation.y += 0.0003;
+          }
+
+          camera.position.x = targetX * 1.5;
+          camera.position.y = targetY * 1.5;
+          camera.lookAt(0, 0, 0);
+
+          renderer.render(scene, camera);
+        }
+
+        animate();
+      } catch (err) {
+        console.warn('WebGL initialization skipped or unsupported:', err);
+        const container = document.getElementById('bg-canvas-container');
+        if (container) container.style.display = 'none';
+      }
+    })();
+  </script>
+
+</body></html>
